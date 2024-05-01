@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+    main-app:
+        build:
+            context: .
+            dockerfile: dockerfile
+        image: main-app
+        container_name: main-app
+        environment:
+            - ASPNETCORE_ENVIRONMENT=docker
+            - ASPNETCORE_URLS=http://0.0.0.0:5020
+            - SeqHealthCheckBaseAddress=http://seq
+            - OTEL_EXPORTER_OTLP_ENDPOINT=http://jaeger:4317
+        ports:
+            - 8081:5020
+        depends_on:
+            - seq
+            - identitydb
+            - jaeger
+    identitydb:
+        image: postgres
+        container_name: identity-db
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=Admin123
+        ports:
+            - 5432:5432
+    seq:
+        image: datalust/seq
+        container_name: seq-structure-logging
+        environment:
+            - ACCEPT_EULA=Y
+        ports:
+            - 8082:80
+            - 5341:5341
+    jaeger:
+        image: jaegertracing/all-in-one
+        container_name: jaeger-tracing
+        ports:
+            - 8083:16686
+            - 4317:4317
